@@ -1,0 +1,14 @@
+node_modules/
+coverage/
+coverage.json
+typechain/
+typechain-types/
+cache/
+artifacts/
+.env
+.env.local
+.DS_Store
+*.log
+dist/
+.openzeppelin/
+scripts/deployments/*.json

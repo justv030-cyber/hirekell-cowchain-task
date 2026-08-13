@@ -1,0 +1,8 @@
+{
+  "feeRateBps": 250,
+  "minBetUsdc": "1",
+  "maxBetUsdc": "50000",
+  "network": "localhost",
+  "chainId": 31337,
+  "rpcUrl": "http://127.0.0.1:8545"
+}

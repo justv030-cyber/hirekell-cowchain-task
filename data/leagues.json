@@ -1,0 +1,13 @@
+{
+  "leagues": [
+    { "id": "premier-league", "name": "Premier League", "sport": "Football", "country": "England" },
+    { "id": "la-liga", "name": "La Liga", "sport": "Football", "country": "Spain" },
+    { "id": "serie-a", "name": "Serie A", "sport": "Football", "country": "Italy" },
+    { "id": "bundesliga", "name": "Bundesliga", "sport": "Football", "country": "Germany" },
+    { "id": "ligue-1", "name": "Ligue 1", "sport": "Football", "country": "France" },
+    { "id": "nba", "name": "NBA", "sport": "Basketball", "country": "USA" },
+    { "id": "atp", "name": "ATP Tour", "sport": "Tennis", "country": "International" },
+    { "id": "wta", "name": "WTA Tour", "sport": "Tennis", "country": "International" },
+    { "id": "ufc", "name": "UFC", "sport": "MMA", "country": "International" }
+  ]
+}

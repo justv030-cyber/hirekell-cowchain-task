@@ -1,0 +1,20 @@
+{
+  "nbaFinals": {
+    "eventName": "NBA Finals — Game 7",
+    "homeTeam": "Boston Celtics",
+    "awayTeam": "Los Angeles Lakers",
+    "league": "NBA",
+    "category": "Basketball",
+    "lockOffsetSeconds": 43200,
+    "resolveOffsetSeconds": 46800
+  },
+  "christmasDay": {
+    "eventName": "NBA Christmas Day Special",
+    "homeTeam": "Golden State Warriors",
+    "awayTeam": "Denver Nuggets",
+    "league": "NBA",
+    "category": "Basketball",
+    "lockOffsetSeconds": 86400,
+    "resolveOffsetSeconds": 90000
+  }
+}

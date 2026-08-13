@@ -1,0 +1,20 @@
+{
+  "madridOpen": {
+    "eventName": "ATP Madrid Open — Final",
+    "homeTeam": "Carlos Alcaraz",
+    "awayTeam": "Novak Djokovic",
+    "league": "ATP",
+    "category": "Tennis",
+    "lockOffsetSeconds": 172800,
+    "resolveOffsetSeconds": 176400
+  },
+  "rolandGarros": {
+    "eventName": "Roland Garros — Women's Final",
+    "homeTeam": "Iga Swiatek",
+    "awayTeam": "Aryna Sabalenka",
+    "league": "WTA",
+    "category": "Tennis",
+    "lockOffsetSeconds": 259200,
+    "resolveOffsetSeconds": 262800
+  }
+}

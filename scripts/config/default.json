@@ -1,0 +1,7 @@
+{
+  "feeRateBps": 250,
+  "minBetUsdc": "10",
+  "maxBetUsdc": "10000",
+  "network": "hardhat",
+  "chainId": 31337
+}

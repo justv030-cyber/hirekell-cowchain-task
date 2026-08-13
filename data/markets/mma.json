@@ -1,0 +1,20 @@
+{
+  "ufc300": {
+    "eventName": "UFC 300 — Main Event",
+    "homeTeam": "Alex Pereira",
+    "awayTeam": "Jamahal Hill",
+    "league": "UFC",
+    "category": "MMA",
+    "lockOffsetSeconds": 86400,
+    "resolveOffsetSeconds": 90000
+  },
+  "ufc294": {
+    "eventName": "UFC 294 — Lightweight Title",
+    "homeTeam": "Islam Makhachev",
+    "awayTeam": "Charles Oliveira",
+    "league": "UFC",
+    "category": "MMA",
+    "lockOffsetSeconds": 172800,
+    "resolveOffsetSeconds": 176400
+  }
+}

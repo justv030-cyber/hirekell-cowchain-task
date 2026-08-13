@@ -1,0 +1,10 @@
+{
+  "teams": [
+    { "name": "Boston Celtics", "league": "NBA", "conference": "East" },
+    { "name": "Los Angeles Lakers", "league": "NBA", "conference": "West" },
+    { "name": "Golden State Warriors", "league": "NBA", "conference": "West" },
+    { "name": "Denver Nuggets", "league": "NBA", "conference": "West" },
+    { "name": "Miami Heat", "league": "NBA", "conference": "East" },
+    { "name": "Milwaukee Bucks", "league": "NBA", "conference": "East" }
+  ]
+}

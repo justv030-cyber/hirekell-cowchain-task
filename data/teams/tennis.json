@@ -1,0 +1,9 @@
+{
+  "players": [
+    { "name": "Carlos Alcaraz", "tour": "ATP", "ranking": 1 },
+    { "name": "Novak Djokovic", "tour": "ATP", "ranking": 2 },
+    { "name": "Jannik Sinner", "tour": "ATP", "ranking": 3 },
+    { "name": "Iga Swiatek", "tour": "WTA", "ranking": 1 },
+    { "name": "Aryna Sabalenka", "tour": "WTA", "ranking": 2 }
+  ]
+}

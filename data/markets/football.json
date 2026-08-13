@@ -1,0 +1,29 @@
+{
+  "premierLeague": {
+    "eventName": "Premier League — Matchday 12",
+    "homeTeam": "Manchester United",
+    "awayTeam": "Liverpool FC",
+    "league": "Premier League",
+    "category": "Football",
+    "lockOffsetSeconds": 86400,
+    "resolveOffsetSeconds": 90000
+  },
+  "laLiga": {
+    "eventName": "La Liga — El Clásico",
+    "homeTeam": "Barcelona",
+    "awayTeam": "Real Madrid",
+    "league": "La Liga",
+    "category": "Football",
+    "lockOffsetSeconds": 172800,
+    "resolveOffsetSeconds": 176400
+  },
+  "serieA": {
+    "eventName": "Serie A — Derby della Madonnina",
+    "homeTeam": "AC Milan",
+    "awayTeam": "Inter Milan",
+    "league": "Serie A",
+    "category": "Football",
+    "lockOffsetSeconds": 259200,
+    "resolveOffsetSeconds": 262800
+  }
+}

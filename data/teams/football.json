@@ -1,0 +1,12 @@
+{
+  "teams": [
+    { "name": "Manchester United", "league": "Premier League", "shortCode": "MUN" },
+    { "name": "Liverpool FC", "league": "Premier League", "shortCode": "LIV" },
+    { "name": "Arsenal", "league": "Premier League", "shortCode": "ARS" },
+    { "name": "Chelsea", "league": "Premier League", "shortCode": "CHE" },
+    { "name": "Barcelona", "league": "La Liga", "shortCode": "BAR" },
+    { "name": "Real Madrid", "league": "La Liga", "shortCode": "RMA" },
+    { "name": "AC Milan", "league": "Serie A", "shortCode": "MIL" },
+    { "name": "Inter Milan", "league": "Serie A", "shortCode": "INT" }
+  ]
+}
