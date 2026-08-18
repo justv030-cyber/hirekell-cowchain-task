@@ -36,12 +36,14 @@ interface IBettingMarket {
     event MarketResolved(uint8 winningOutcome, uint256 totalPool);
     event WinningsClaimed(address indexed bettor, uint256 payout);
     event MarketCancelled(string reason);
+    event BetsRefunded(address indexed bettor, uint256 amount);
 
     function placeBet(uint8 outcome, uint256 amount) external;
     function lockMarket() external;
     function resolveMarket(uint8 winningOutcome) external;
     function claimWinnings() external;
     function cancelMarket(string calldata reason) external;
+    function refundBets() external;
 
     function getMarketInfo() external view returns (MarketInfo memory);
     function getBet(uint256 betId) external view returns (Bet memory);

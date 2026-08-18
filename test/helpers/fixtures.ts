@@ -82,7 +82,11 @@ export async function createSampleMarket(
     .find((e) => e?.name === "MarketCreated");
 
   const marketAddress = event?.args?.market as string;
-  return ethers.getContractAt("BettingMarket", marketAddress);
+  const market = await ethers.getContractAt("BettingMarket", marketAddress);
+  const treasury = await ethers.getContractAt("Treasury", await market.treasury());
+  await treasury.approveCollector(await market.getAddress());
+
+  return market;
 }
 
 export async function approveAndBet(

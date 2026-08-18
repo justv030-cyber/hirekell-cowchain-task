@@ -16,6 +16,7 @@ contract Treasury is ITreasury, Ownable {
     IERC20 public immutable bettingToken;
     uint256 public feeRateBps;
     uint256 public totalCollected;
+    mapping(address => bool) public approvedCollectors;
 
     uint256 public constant MAX_FEE_BPS = 1000; // 10% cap
 
@@ -27,17 +28,17 @@ contract Treasury is ITreasury, Ownable {
 
     /// @inheritdoc ITreasury
     function collectFee(uint256 amount) external {
-        // TODO: Implement fee collection
-        // Requirements:
-        //   - Only callable by the owner OR an approved collector (use a simple mapping)
-        //   - Transfer `amount` of bettingToken from msg.sender to this contract
-        //   - Increment totalCollected
-        //   - Emit FeeCollected event
-        //
-        // Hint: Add `mapping(address => bool) public approvedCollectors` and an
-        //       `approveCollector(address)` function callable by owner.
+        require(msg.sender == owner() || approvedCollectors[msg.sender], "Not authorized");
 
-        revert("Not implemented");
+        bettingToken.safeTransferFrom(msg.sender, address(this), amount);
+        totalCollected += amount;
+
+        emit FeeCollected(msg.sender, amount);
+    }
+
+    function approveCollector(address collector) external onlyOwner {
+        require(collector != address(0), "Zero address");
+        approvedCollectors[collector] = true;
     }
 
     /// @inheritdoc ITreasury

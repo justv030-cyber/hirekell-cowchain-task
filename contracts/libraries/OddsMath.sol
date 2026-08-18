@@ -26,15 +26,10 @@ library OddsMath {
         uint256 totalPool,
         uint256 winningPool
     ) internal pure returns (uint256 payout) {
-        // TODO: Implement parimutuel payout calculation
-        // Requirements:
-        //   - Revert with DivisionByZero if winningPool is 0
-        //   - Revert with InsufficientPool if betAmount > winningPool
-        //   - Return (betAmount * totalPool) / winningPool
-        //
-        // Hint: This is a proportional share of the total pool.
+        if (winningPool == 0) revert DivisionByZero();
+        if (betAmount > winningPool) revert InsufficientPool();
 
-        payout = 0; // placeholder — remove this line
+        payout = (betAmount * totalPool) / winningPool;
     }
 
     /**

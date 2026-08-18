@@ -40,6 +40,8 @@ contract BettingMarket is IBettingMarket, ReentrancyGuard {
     error NotAuthorized();
     error AlreadyClaimed();
     error NotWinner();
+    error MarketNotCancelled();
+    error NoRefundAvailable();
     error BetNotFound();
     error InvalidOutcome(uint8 outcome);
 
@@ -88,20 +90,26 @@ contract BettingMarket is IBettingMarket, ReentrancyGuard {
 
     /// @inheritdoc IBettingMarket
     function placeBet(uint8 outcome, uint256 amount) external nonReentrant {
-        // TODO: Implement bet placement
-        // Requirements:
-        //   1. Market must be Open and block.timestamp < lockTime
-        //   2. amount > 0
-        //   3. outcome must be valid — revert InvalidOutcome if outcome >= 3
-        //   4. Transfer `amount` of bettingToken from msg.sender to this contract
-        //   5. Create a new Bet struct and store it
-        //   6. Update _outcomePools[outcome] and marketInfo.totalPool
-        //   7. Track bet in _bettorBetIds[msg.sender]
-        //   8. Emit BetPlaced event
-        //
-        // Hint: Use _betIds.length as the new bet ID before pushing.
+        if (marketInfo.status != MarketStatus.Open) revert MarketNotOpen();
+        if (block.timestamp >= marketInfo.lockTime) revert BettingClosed();
+        if (amount == 0) revert InvalidAmount();
+        if (outcome >= BetTypes.MAX_OUTCOMES) revert InvalidOutcome(outcome);
 
-        revert("Not implemented");
+        bettingToken.safeTransferFrom(msg.sender, address(this), amount);
+
+        uint256 betId = _betIds.length;
+        _bets[betId] = Bet({
+            bettor: msg.sender,
+            outcome: outcome,
+            amount: amount,
+            claimed: false
+        });
+        _betIds.push(betId);
+        _outcomePools[outcome] += amount;
+        marketInfo.totalPool += amount;
+        _bettorBetIds[msg.sender].push(betId);
+
+        emit BetPlaced(msg.sender, outcome, amount);
     }
 
     /// @inheritdoc IBettingMarket
@@ -115,35 +123,70 @@ contract BettingMarket is IBettingMarket, ReentrancyGuard {
 
     /// @inheritdoc IBettingMarket
     function resolveMarket(uint8 winningOutcome) external onlyResolver nonReentrant {
-        // TODO: Implement market resolution
-        // Requirements:
-        //   1. Market must be Locked (or Open past lockTime — auto-lock allowed)
-        //   2. block.timestamp >= resolveTime
-        //   3. winningOutcome must be valid
-        //   4. Set marketInfo.status to Resolved, winningOutcome, emit event
-        //
-        // If market is still Open but past lockTime, transition to Locked first.
+        if (marketInfo.status == MarketStatus.Open) {
+            if (block.timestamp < marketInfo.lockTime) revert BettingClosed();
+            marketInfo.status = MarketStatus.Locked;
+            emit MarketLocked(marketInfo.lockTime);
+        }
+        if (marketInfo.status != MarketStatus.Locked) revert MarketNotOpen();
+        if (block.timestamp < marketInfo.resolveTime) revert BettingClosed();
+        if (winningOutcome >= BetTypes.MAX_OUTCOMES) revert InvalidOutcome(winningOutcome);
 
-        revert("Not implemented");
+        marketInfo.status = MarketStatus.Resolved;
+        marketInfo.winningOutcome = winningOutcome;
+
+        emit MarketResolved(winningOutcome, marketInfo.totalPool);
     }
 
     /// @inheritdoc IBettingMarket
     function claimWinnings() external nonReentrant {
-        // TODO: Implement winnings claim
-        // Requirements:
-        //   1. Market must be Resolved
-        //   2. Iterate over msg.sender's bets in _bettorBetIds
-        //   3. For each unclaimed bet on the winning outcome:
-        //      a. Calculate gross payout via OddsMath.calculatePayout
-        //      b. Apply fee via OddsMath.applyFee using treasury.getFeeRate()
-        //      c. Transfer net payout to msg.sender
-        //      d. Call treasury.collectFee(feeAmount) — approve first if needed
-        //      e. Mark bet as claimed
-        //   4. Emit WinningsClaimed for total payout
-        //
-        // Hint: A bettor may have multiple winning bets — sum them up.
+        if (marketInfo.status != MarketStatus.Resolved) revert MarketNotResolved();
 
-        revert("Not implemented");
+        uint256 totalPayout;
+        uint256 totalFee;
+        bool hasWinningBet;
+        bool hasUnclaimedWinningBet;
+        uint256[] storage bettorBetIds = _bettorBetIds[msg.sender];
+        uint256 betIdsLength = bettorBetIds.length;
+        uint8 winningOutcome = marketInfo.winningOutcome;
+        uint256 totalPool = marketInfo.totalPool;
+        uint256 winningPool = _outcomePools[winningOutcome];
+        uint256 feeRateBps = treasury.getFeeRate();
+
+        for (uint256 i; i < betIdsLength; ) {
+            Bet storage bet = _bets[bettorBetIds[i]];
+            if (bet.outcome == winningOutcome) {
+                hasWinningBet = true;
+                if (!bet.claimed) {
+                    hasUnclaimedWinningBet = true;
+                    uint256 grossPayout = OddsMath.calculatePayout(
+                        bet.amount,
+                        totalPool,
+                        winningPool
+                    );
+                    (uint256 netPayout, uint256 feeAmount) = OddsMath.applyFee(grossPayout, feeRateBps);
+
+                    bet.claimed = true;
+                    totalPayout += netPayout;
+                    totalFee += feeAmount;
+                }
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        if (!hasWinningBet) revert NotWinner();
+        if (!hasUnclaimedWinningBet) revert AlreadyClaimed();
+
+        bettingToken.safeTransfer(msg.sender, totalPayout);
+        if (totalFee > 0) {
+            bettingToken.forceApprove(address(treasury), totalFee);
+            treasury.collectFee(totalFee);
+        }
+
+        emit WinningsClaimed(msg.sender, totalPayout);
     }
 
     /// @inheritdoc IBettingMarket
@@ -151,6 +194,26 @@ contract BettingMarket is IBettingMarket, ReentrancyGuard {
         if (marketInfo.status == MarketStatus.Resolved) revert MarketAlreadyResolved();
         marketInfo.status = MarketStatus.Cancelled;
         emit MarketCancelled(reason);
+    }
+
+    /// @inheritdoc IBettingMarket
+    function refundBets() external nonReentrant {
+        if (marketInfo.status != MarketStatus.Cancelled) revert MarketNotCancelled();
+
+        uint256 totalRefund;
+        uint256[] storage bettorBetIds = _bettorBetIds[msg.sender];
+        for (uint256 i; i < bettorBetIds.length; ++i) {
+            Bet storage bet = _bets[bettorBetIds[i]];
+            if (bet.claimed) continue;
+
+            bet.claimed = true;
+            totalRefund += bet.amount;
+        }
+
+        if (totalRefund == 0) revert NoRefundAvailable();
+
+        bettingToken.safeTransfer(msg.sender, totalRefund);
+        emit BetsRefunded(msg.sender, totalRefund);
     }
 
     /// @inheritdoc IBettingMarket
